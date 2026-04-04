@@ -31,12 +31,17 @@ export default function Landing() {
           <span className="font-semibold tracking-tight">Shadow</span>
           <span className="text-white/40 text-xs hidden sm:inline">· AI boxing coach</span>
         </div>
-        <Link
-          href="/app"
-          className="rounded-full bg-accent text-black font-semibold hover:bg-accent/90 px-4 py-2 text-sm transition-colors"
-        >
-          Train free →
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/clinic/pricing" className="hidden sm:inline text-sm text-white/60 hover:text-white transition-colors">
+            For clinics
+          </Link>
+          <Link
+            href="/app"
+            className="rounded-full bg-accent text-black font-semibold hover:bg-accent/90 px-4 py-2 text-sm transition-colors"
+          >
+            Train free →
+          </Link>
+        </div>
       </nav>
 
       {/* hero */}
