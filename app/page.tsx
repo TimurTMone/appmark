@@ -4,165 +4,162 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 const FEATURES = [
-  {
-    emoji: "👁️",
-    title: "On-device pose AI",
-    body: "MediaPipe runs in your browser on GPU. Your camera feed never leaves the device.",
-  },
-  {
-    emoji: "👻",
-    title: "Ghost Rep",
-    body: "Your best squat replays as a translucent skeleton. Race your previous self, live.",
-  },
-  {
-    emoji: "😄",
-    title: "Mood Ring",
-    body: "Face AI reads your smile. Look too serious? A warm voice nudges you to breathe and grin.",
-  },
-  {
-    emoji: "🗣️",
-    title: "Voice coach",
-    body: "Counts reps and calls depth out loud — hands-free, eyes on form.",
-  },
-  {
-    emoji: "⚡",
-    title: "Zero latency",
-    body: "30+ FPS pose tracking, drawn over a mirrored camera. Feels like a native app.",
-  },
+  { emoji: "🥊", title: "Punch recognition", body: "Jab, cross, hook, uppercut — detected in real time from your webcam. No gloves, no sensors." },
+  { emoji: "🎯", title: "Combo caller", body: "Calls combos like '1-2-3' and scores whether you land them in sequence. Like a trainer shouting from the corner." },
+  { emoji: "💪", title: "Pushups & squats", body: "Same AI, different drills. Form checks, rep counts, ghost replay. Build your conditioning." },
+  { emoji: "😄", title: "Mood Ring", body: "Face AI reads your smile. Train hard, stay loose — warm voice nudges keep your head in the game." },
+];
+
+const STATS = [
+  { v: "4", l: "punch types" },
+  { v: "5", l: "AI models" },
+  { v: "0", l: "installs" },
+  { v: "100%", l: "on-device" },
 ];
 
 export default function Landing() {
   return (
     <main className="min-h-[100dvh] w-full bg-black text-white relative overflow-hidden">
-      {/* ambient blobs */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-accent/20 blur-3xl blob" />
+      {/* ambient */}
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-red-500/20 blur-3xl blob" />
       <div className="pointer-events-none absolute top-1/3 -right-40 h-[420px] w-[420px] rounded-full bg-fuchsia-500/20 blur-3xl blob" style={{ animationDelay: "-6s" }} />
       <div className="pointer-events-none absolute inset-0 grid-fade" />
 
-      {/* nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center text-black font-bold">P</div>
-          <span className="font-semibold tracking-tight">PoseAI Coach</span>
+          <div className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center text-black font-bold">S</div>
+          <span className="font-semibold tracking-tight">Shadow</span>
+          <span className="text-white/40 text-xs hidden sm:inline">· AI boxing coach</span>
         </div>
         <Link
           href="/app"
-          className="rounded-full bg-white/10 hover:bg-white/15 border border-white/15 px-4 py-2 text-sm font-medium backdrop-blur transition-colors"
+          className="rounded-full bg-accent text-black font-semibold hover:bg-accent/90 px-4 py-2 text-sm transition-colors"
         >
-          Launch app →
+          Train free →
         </Link>
       </nav>
 
       {/* hero */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-24 md:pt-24 md:pb-32">
+      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-20 md:pt-20 md:pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-3xl"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70 mb-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-            Live in your browser · no install
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-400/30 bg-red-500/10 px-3 py-1 text-xs text-red-200 mb-6">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
+            No gloves. No gym. No app store.
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-            Race your <span className="text-accent">best self.</span>
-            <br />
-            One squat at a time.
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.02] mb-6">
+            Shadow box with an <span className="text-accent">AI in your corner.</span>
           </h1>
           <p className="text-lg md:text-xl text-white/70 max-w-2xl mb-10 leading-relaxed">
-            PoseAI Coach turns your webcam into a real-time form coach. On-device body tracking,
-            voice feedback, a <span className="text-white font-semibold">ghost replay</span> of your
-            deepest rep, and a mood ring that reminds you to smile.
+            Shadow turns your webcam into a boxing trainer. It sees every jab, cross, hook, and
+            uppercut — calls combos like a cornerman, and tracks your conditioning with pushups and squats.
+            All in a browser tab.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 mb-10">
             <Link
               href="/app"
               className="inline-flex items-center justify-center rounded-full bg-accent text-black font-semibold px-6 py-4 text-base hover:bg-accent/90 active:scale-[0.98] transition-all"
             >
-              Start squatting →
+              Start your round →
             </Link>
             <a
-              href="#features"
+              href="#how"
               className="inline-flex items-center justify-center rounded-full bg-white/5 border border-white/15 text-white font-medium px-6 py-4 text-base hover:bg-white/10 transition-colors"
             >
               How it works
             </a>
           </div>
+          <div className="grid grid-cols-4 gap-3 max-w-lg">
+            {STATS.map((s) => (
+              <div key={s.l} className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
+                <div className="text-xl font-bold">{s.v}</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/50 mt-0.5">{s.l}</div>
+              </div>
+            ))}
+          </div>
         </motion.div>
 
-        {/* hero mock */}
+        {/* hero mock: ring HUD */}
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-20 relative mx-auto w-full max-w-sm"
+          className="mt-16 relative mx-auto w-full max-w-sm"
         >
-          <div className="relative aspect-[9/19.5] rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-3 shadow-2xl shadow-accent/10">
+          <div className="relative aspect-[9/19.5] rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-zinc-900 to-black p-3 shadow-2xl shadow-red-500/10">
             <div className="h-full w-full rounded-[2rem] bg-black overflow-hidden relative">
-              {/* fake camera gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-900/40 via-zinc-900 to-emerald-900/30" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,255,163,0.15),transparent_60%)]" />
+              <div className="absolute inset-0 bg-gradient-to-br from-red-900/40 via-zinc-900 to-fuchsia-900/30" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_50%,rgba(244,63,94,0.25),transparent_50%)]" />
 
-              {/* fake skeleton */}
+              {/* skeleton */}
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 400">
-                {/* ghost skeleton (magenta) */}
-                <g stroke="#f0abfc" strokeWidth="3" strokeLinecap="round" opacity="0.55">
-                  <line x1="80" y1="140" x2="120" y2="140" />
-                  <line x1="80" y1="140" x2="70" y2="220" />
-                  <line x1="120" y1="140" x2="130" y2="220" />
-                  <line x1="70" y1="220" x2="130" y2="220" />
-                  <line x1="70" y1="220" x2="55" y2="295" />
-                  <line x1="55" y1="295" x2="45" y2="365" />
-                  <line x1="130" y1="220" x2="145" y2="295" />
-                  <line x1="145" y1="295" x2="155" y2="365" />
-                </g>
-                {/* live skeleton (green) */}
-                <g stroke="#00ffa3" strokeWidth="4" strokeLinecap="round">
+                <g stroke="#ffffff" strokeOpacity="0.85" strokeWidth="3" strokeLinecap="round">
                   <line x1="82" y1="135" x2="118" y2="135" />
                   <line x1="82" y1="135" x2="74" y2="215" />
                   <line x1="118" y1="135" x2="126" y2="215" />
                   <line x1="74" y1="215" x2="126" y2="215" />
-                  <line x1="74" y1="215" x2="60" y2="280" />
-                  <line x1="60" y1="280" x2="50" y2="360" />
-                  <line x1="126" y1="215" x2="140" y2="280" />
-                  <line x1="140" y1="280" x2="150" y2="360" />
+                  {/* extended arm punching */}
+                  <line x1="118" y1="135" x2="150" y2="145" />
+                  <line x1="150" y1="145" x2="185" y2="140" />
+                  <line x1="82" y1="135" x2="65" y2="165" />
+                  <line x1="65" y1="165" x2="55" y2="190" />
+                  <line x1="74" y1="215" x2="65" y2="290" />
+                  <line x1="65" y1="290" x2="60" y2="365" />
+                  <line x1="126" y1="215" x2="135" y2="290" />
+                  <line x1="135" y1="290" x2="140" y2="365" />
                 </g>
               </svg>
 
-              {/* rep counter */}
-              <div className="absolute top-20 left-0 right-0 flex flex-col items-center">
-                <div className="text-7xl font-bold leading-none drop-shadow-lg">7</div>
-                <div className="text-white/70 text-[10px] mt-1 uppercase tracking-widest">reps</div>
+              {/* CROSS flash */}
+              <div className="absolute top-[42%] left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-2xl font-black text-2xl tracking-wider border-2" style={{ background: "#f43f5e22", color: "#f43f5e", borderColor: "#f43f5e" }}>
+                CROSS
               </div>
 
-              {/* top chips */}
+              {/* combo pill */}
+              <div className="absolute top-14 right-3 px-2.5 py-1.5 rounded-xl bg-black/60 backdrop-blur border border-white/10 text-right">
+                <div className="text-[7px] uppercase tracking-widest text-white/50 leading-none">Combo</div>
+                <div className="text-lg font-black leading-tight mt-0.5">1-2-3</div>
+                <div className="flex gap-0.5 justify-end mt-0.5">
+                  <span className="text-[7px] font-bold px-1 py-px rounded bg-[#00ffa3] text-black">J</span>
+                  <span className="text-[7px] font-bold px-1 py-px rounded bg-[#f43f5e] text-black">C</span>
+                  <span className="text-[7px] font-bold px-1 py-px rounded bg-white/10 text-white/60">H</span>
+                </div>
+              </div>
+
+              {/* live chip */}
               <div className="absolute top-4 left-0 right-0 flex justify-between px-4">
                 <div className="h-7 w-7 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-xs">✕</div>
-                <div className="px-2.5 py-1 rounded-full bg-black/50 backdrop-blur text-[10px]">Live · Squats</div>
+                <div className="px-2 py-0.5 rounded-full bg-red-500 backdrop-blur text-[9px] font-bold tracking-wider flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
+                  LIVE · SHADOW
+                </div>
                 <div className="h-7 w-7 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-xs">🔊</div>
               </div>
 
-              {/* ghost badge */}
-              <div className="absolute top-36 right-3 px-2 py-1 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/40 backdrop-blur text-[10px] text-fuchsia-200 flex items-center gap-1">
-                <span className="h-1 w-1 rounded-full bg-fuchsia-300 animate-pulse" />
-                Ghost: rep 4
+              {/* total counter */}
+              <div className="absolute top-28 left-0 right-0 flex flex-col items-center">
+                <div className="text-5xl font-bold leading-none drop-shadow-lg">42</div>
+                <div className="text-white/60 text-[8px] mt-1 uppercase tracking-widest">punches thrown</div>
               </div>
 
-              {/* bottom sheet */}
-              <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-3">
-                <div className="flex justify-between mb-2">
-                  <div>
-                    <div className="text-[8px] text-white/60 uppercase tracking-wide">Phase</div>
-                    <div className="text-xs font-semibold">Down</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[8px] text-white/60 uppercase tracking-wide">Knee</div>
-                    <div className="text-xs font-semibold">92°</div>
-                  </div>
-                </div>
-                <div className="h-1 w-full rounded-full bg-white/15 overflow-hidden">
-                  <div className="h-full w-[72%] bg-accent" />
+              {/* bottom stats */}
+              <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-2.5">
+                <div className="grid grid-cols-4 gap-1 mb-2">
+                  {[
+                    { n: "1", l: "jab", c: "#00ffa3", v: 14 },
+                    { n: "2", l: "cross", c: "#f43f5e", v: 11 },
+                    { n: "3", l: "hook", c: "#f0abfc", v: 9 },
+                    { n: "5", l: "upcut", c: "#fbbf24", v: 8 },
+                  ].map((t) => (
+                    <div key={t.l} className="text-center rounded-lg bg-white/5 py-1">
+                      <div className="text-[7px] font-bold" style={{ color: t.c }}>{t.n}</div>
+                      <div className="text-sm font-bold">{t.v}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -171,9 +168,9 @@ export default function Landing() {
       </section>
 
       {/* features */}
-      <section id="features" className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
+      <section id="how" className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 max-w-xl">
-          A whole fitness app, running in a browser tab.
+          A fight gym in your browser.
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {FEATURES.map((f, i) => (
@@ -193,24 +190,43 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* pricing tease */}
+      <section className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
+        <h2 className="text-2xl font-bold tracking-tight mb-6">Pricing</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            <div className="text-xs uppercase tracking-wider text-white/50 mb-2">Free forever</div>
+            <div className="text-3xl font-bold mb-1">$0</div>
+            <div className="text-sm text-white/60 mb-4">3 rounds per day · all drills · voice coach</div>
+            <Link href="/app" className="inline-flex rounded-full bg-white/10 border border-white/15 px-4 py-2 text-sm font-medium hover:bg-white/15 transition-colors">
+              Start free
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-accent/40 bg-gradient-to-br from-accent/10 to-fuchsia-500/10 p-6 relative">
+            <div className="absolute top-4 right-4 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full bg-accent text-black">Launch</div>
+            <div className="text-xs uppercase tracking-wider text-white/70 mb-2">Shadow Pro</div>
+            <div className="text-3xl font-bold mb-1">$9.99<span className="text-base text-white/60 font-normal">/mo</span></div>
+            <div className="text-sm text-white/70 mb-4">Unlimited rounds · session history · pro combos · progress graphs</div>
+            <button className="inline-flex rounded-full bg-accent text-black font-semibold px-4 py-2 text-sm hover:bg-accent/90 transition-colors" disabled>
+              Coming soon
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-accent/10 via-white/[0.03] to-fuchsia-500/10 p-10 md:p-16 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Ready to beat your ghost?</h2>
-          <p className="text-white/70 max-w-xl mx-auto mb-8">
-            No app store, no signup. Grant camera access and go.
-          </p>
-          <Link
-            href="/app"
-            className="inline-flex items-center justify-center rounded-full bg-accent text-black font-semibold px-8 py-4 text-base hover:bg-accent/90 active:scale-[0.98] transition-all"
-          >
-            Launch PoseAI Coach →
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-red-500/10 via-white/[0.03] to-fuchsia-500/10 p-10 md:p-16 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Ring the bell.</h2>
+          <p className="text-white/70 max-w-xl mx-auto mb-8">Grant camera access. Start throwing. It just works.</p>
+          <Link href="/app" className="inline-flex items-center justify-center rounded-full bg-accent text-black font-semibold px-8 py-4 text-base hover:bg-accent/90 active:scale-[0.98] transition-all">
+            Enter Shadow →
           </Link>
         </div>
       </section>
 
       <footer className="relative z-10 max-w-6xl mx-auto px-6 pb-10 text-center text-white/40 text-xs">
-        Built with Next.js, MediaPipe, Web Speech API.
+        Shadow · Built with Next.js, MediaPipe, Web Speech API. All models run on-device.
       </footer>
     </main>
   );

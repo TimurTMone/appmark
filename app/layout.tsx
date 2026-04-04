@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PoseAI Coach — Race your best self",
+  title: "Shadow — AI Boxing Coach in Your Browser",
   description:
-    "Real-time AI body tracking fitness coach in your browser. On-device pose AI, voice coaching, ghost-rep replay.",
+    "Shadow box with an AI in your corner. Jab, cross, hook, uppercut detected live from your webcam. Combo caller, mood ring, pushups, squats. No install.",
 };
 
 export const viewport: Viewport = {
