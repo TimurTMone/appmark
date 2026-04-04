@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  background: #000;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  height: 100dvh;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+@keyframes storyFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.story-bar-fill {
+  transform-origin: left;
+  animation: storyFill linear forwards;
+}
+
+@keyframes blob {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(40px,-30px) scale(1.1); }
+  66% { transform: translate(-30px,20px) scale(0.95); }
+}
+.blob { animation: blob 18s ease-in-out infinite; }
+
+.no-tap-highlight { -webkit-tap-highlight-color: transparent; }
+
+.grid-fade {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
