@@ -4,7 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getPoseLandmarker, kneeAngles, L, type Landmarks } from "@/lib/pose";
+import { getFaceLandmarker, smileScore } from "@/lib/face";
 import { speak } from "@/lib/voice";
+
+const SMILE_CUES = [
+  "Hey, smile. Be happy. Don't worry.",
+  "Chin up — you've got this.",
+  "Come on, give me a smile.",
+  "Breathe. Relax the face.",
+  "You're doing great. Smile.",
+];
+const HAPPY_CUES = [
+  "There it is.",
+  "Love that smile.",
+  "Beautiful. Keep going.",
+  "Yes. That's the energy.",
+];
 
 type Phase = "up" | "down";
 type Frame = { t: number; lm: Landmarks };
@@ -42,6 +57,8 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
   const [hasGhost, setHasGhost] = useState(false);
   const [bestDepth, setBestDepth] = useState<number | null>(null);
   const [beatGhostToast, setBeatGhostToast] = useState(false);
+  const [smile, setSmile] = useState<number | null>(null);
+  const [moodCue, setMoodCue] = useState<string | null>(null);
 
   // refs to avoid re-creating the effect loop
   const phaseRef = useRef<Phase>("up");
@@ -53,6 +70,12 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
   const bestFramesRef = useRef<Frame[]>([]);
   const bestDurationRef = useRef<number>(0);
   const bestDepthRef = useRef<number>(180); // lower = deeper
+  const smileEmaRef = useRef<number>(0); // smoothed smile 0..1
+  const notSmilingSinceRef = useRef<number>(0);
+  const smilingSinceRef = useRef<number>(0);
+  const lastMoodCueAtRef = useRef<number>(0);
+  const isSmilingRef = useRef<boolean>(false);
+  const frameCountRef = useRef<number>(0);
 
   useEffect(() => { voiceOnRef.current = voiceOn; }, [voiceOn]);
 
@@ -71,7 +94,7 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
         v.srcObject = stream;
         await v.play();
 
-        const lm = await getPoseLandmarker();
+        const [lm, fm] = await Promise.all([getPoseLandmarker(), getFaceLandmarker()]);
         if (stopped) return;
         setReady(true);
         if (voiceOnRef.current) speak("Let's go. Start when ready.");
@@ -79,8 +102,16 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
         const loop = () => {
           if (stopped) return;
           const now = performance.now();
-          const res = lm.detectForVideo(v, now);
-          drawAndScore(res.landmarks?.[0], now);
+          const poseRes = lm.detectForVideo(v, now);
+          drawAndScore(poseRes.landmarks?.[0], now);
+
+          // face every other frame to save cycles
+          frameCountRef.current++;
+          if (frameCountRef.current % 2 === 0) {
+            const faceRes = fm.detectForVideo(v, now);
+            const raw = smileScore(faceRes.faceBlendshapes?.[0]?.categories);
+            if (raw != null) updateMood(raw, now);
+          }
           rafRef.current = requestAnimationFrame(loop);
         };
         rafRef.current = requestAnimationFrame(loop);
@@ -205,6 +236,48 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
       }
     }
 
+    function updateMood(raw: number, now: number) {
+      // EMA smoothing so single-frame noise doesn't flip state
+      const ema = smileEmaRef.current * 0.75 + raw * 0.25;
+      smileEmaRef.current = ema;
+      setSmile(ema);
+
+      const SMILING = 0.35;
+      const NOT_SMILING = 0.15;
+      const wasSmiling = isSmilingRef.current;
+
+      if (!wasSmiling && ema > SMILING) {
+        isSmilingRef.current = true;
+        smilingSinceRef.current = now;
+        notSmilingSinceRef.current = 0;
+        // celebrate transition into smile
+        if (voiceOnRef.current && now - lastMoodCueAtRef.current > 4000) {
+          const cue = HAPPY_CUES[Math.floor(Math.random() * HAPPY_CUES.length)];
+          setMoodCue(cue);
+          speak(cue);
+          lastMoodCueAtRef.current = now;
+          setTimeout(() => setMoodCue(null), 2200);
+        }
+      } else if (wasSmiling && ema < NOT_SMILING) {
+        isSmilingRef.current = false;
+        notSmilingSinceRef.current = now;
+        smilingSinceRef.current = 0;
+      }
+
+      // if not smiling for 4s, gently nudge
+      if (!isSmilingRef.current && notSmilingSinceRef.current > 0) {
+        const since = now - notSmilingSinceRef.current;
+        if (since > 4000 && now - lastMoodCueAtRef.current > 8000) {
+          const cue = SMILE_CUES[Math.floor(Math.random() * SMILE_CUES.length)];
+          setMoodCue(cue);
+          if (voiceOnRef.current) speak(cue, 1500);
+          lastMoodCueAtRef.current = now;
+          notSmilingSinceRef.current = now; // reset window
+          setTimeout(() => setMoodCue(null), 3200);
+        }
+      }
+    }
+
     init();
     return () => {
       stopped = true;
@@ -266,6 +339,27 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
           {voiceOn ? "🔊" : "🔇"}
         </button>
       </div>
+
+      {/* mood ring — under the top bar, left side */}
+      <div className="absolute top-16 left-4 z-20">
+        <MoodRing smile={smile} />
+      </div>
+
+      {/* mood cue banner */}
+      <AnimatePresence>
+        {moodCue && (
+          <motion.div
+            key={moodCue}
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            className="absolute top-28 left-1/2 -translate-x-1/2 z-30 px-4 py-2.5 rounded-2xl bg-white text-black text-sm font-semibold shadow-xl max-w-[80%] text-center"
+          >
+            {moodCue}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ghost badge */}
       {hasGhost && (
@@ -374,9 +468,45 @@ export default function CoachScreen({ onExit }: { onExit: () => void }) {
       {!ready && !err && (
         <div className="absolute inset-0 z-30 bg-black/80 flex flex-col items-center justify-center gap-4">
           <div className="h-10 w-10 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-          <div className="text-sm text-white/70">Loading pose model…</div>
+          <div className="text-sm text-white/70">Loading AI models…</div>
         </div>
       )}
+    </div>
+  );
+}
+
+function MoodRing({ smile }: { smile: number | null }) {
+  const s = smile ?? 0;
+  const pct = Math.max(0, Math.min(1, s));
+  const emoji = pct < 0.15 ? "😐" : pct < 0.35 ? "🙂" : pct < 0.6 ? "😊" : "😄";
+  // circumference of r=18 circle
+  const R = 18;
+  const C = 2 * Math.PI * R;
+  const dash = C * pct;
+
+  return (
+    <div className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-black/50 backdrop-blur border border-white/10">
+      <div className="relative h-10 w-10 flex items-center justify-center">
+        <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90">
+          <circle cx="22" cy="22" r={R} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+          <circle
+            cx="22"
+            cy="22"
+            r={R}
+            fill="none"
+            stroke="#fde047"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${C - dash}`}
+            style={{ transition: "stroke-dasharray 120ms linear" }}
+          />
+        </svg>
+        <span className="text-lg leading-none select-none">{emoji}</span>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[9px] uppercase tracking-wider text-white/50 leading-none">Mood</span>
+        <span className="text-xs font-semibold tabular-nums leading-tight">{Math.round(pct * 100)}%</span>
+      </div>
     </div>
   );
 }

@@ -15,6 +15,11 @@ const FEATURES = [
     body: "Your best squat replays as a translucent skeleton. Race your previous self, live.",
   },
   {
+    emoji: "😄",
+    title: "Mood Ring",
+    body: "Face AI reads your smile. Look too serious? A warm voice nudges you to breathe and grin.",
+  },
+  {
     emoji: "🗣️",
     title: "Voice coach",
     body: "Counts reps and calls depth out loud — hands-free, eyes on form.",
@@ -67,8 +72,8 @@ export default function Landing() {
           </h1>
           <p className="text-lg md:text-xl text-white/70 max-w-2xl mb-10 leading-relaxed">
             PoseAI Coach turns your webcam into a real-time form coach. On-device body tracking,
-            voice feedback, and a <span className="text-white font-semibold">ghost replay</span> of
-            your deepest rep so you can beat it.
+            voice feedback, a <span className="text-white font-semibold">ghost replay</span> of your
+            deepest rep, and a mood ring that reminds you to smile.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
