@@ -116,7 +116,12 @@ export default function LastSessionPage() {
           <MetricCard label="Elbow @ release" value={`${Math.round(top.metrics.elbowAngleAtRelease)}°`} ideal="near 180°" />
           <MetricCard label="Elbow flare" value={top.metrics.elbowFlareAtSetpoint.toFixed(2)} ideal="< 0.08" />
           <MetricCard label="Release angle" value={top.metrics.releaseAngleDeg != null ? `${Math.round(top.metrics.releaseAngleDeg)}°` : "—"} ideal="45–55°" />
-          <MetricCard label="Jump" value={top.metrics.jumpAmplitude > 0 ? `${(top.metrics.jumpAmplitude * 100).toFixed(1)}` : "0"} ideal="normalized" />
+          <MetricCard
+            label="Apex timing"
+            value={top.metrics.apexToReleaseMs != null ? `${top.metrics.apexToReleaseMs > 0 ? "+" : ""}${Math.round(top.metrics.apexToReleaseMs)}ms` : "no jump"}
+            ideal={top.metrics.apexTimingClass === "no-jump" ? "—" : top.metrics.apexTimingClass === "at-apex" ? "at apex ✓" : top.metrics.apexTimingClass === "on-the-way-up" ? "early" : "late"}
+            tone={top.metrics.apexTimingClass === "at-apex" ? "good" : top.metrics.apexTimingClass === "on-the-way-up" ? "bad" : top.metrics.apexTimingClass === "falling" ? "warn" : undefined}
+          />
           <MetricCard label="Shot duration" value={`${Math.round(top.metrics.shotDurationMs)}ms`} />
         </div>
 

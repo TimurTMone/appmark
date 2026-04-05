@@ -168,7 +168,7 @@ export default function ShotCapture({ config }: Props) {
           ) : (
             <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1">
               {shots.map((s) => (
-                <div key={s.n} className="flex-shrink-0 rounded-xl bg-white/5 border border-white/10 px-3 py-2 min-w-[112px]">
+                <div key={s.n} className="flex-shrink-0 rounded-xl bg-white/5 border border-white/10 px-3 py-2 min-w-[120px]">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] text-white/40">#{s.n}</span>
                     <span className={`text-xs font-bold tabular-nums ${
@@ -177,6 +177,9 @@ export default function ShotCapture({ config }: Props) {
                     }`}>{s.metrics.formScore}</span>
                   </div>
                   <div className="text-[10px] text-white/60 capitalize truncate">{s.cue.voice}</div>
+                  {s.metrics.apexTimingClass !== "no-jump" && (
+                    <ApexTimingBadge apexClass={s.metrics.apexTimingClass} apexMs={s.metrics.apexToReleaseMs} />
+                  )}
                 </div>
               ))}
             </div>
@@ -208,6 +211,22 @@ export default function ShotCapture({ config }: Props) {
 
       {/* persist last session to localStorage so /session/last can show it */}
       <PersistLastSession shotType={shotType} shots={shots} />
+    </div>
+  );
+}
+
+function ApexTimingBadge({ apexClass, apexMs }: { apexClass: ShotMetrics["apexTimingClass"]; apexMs: number | null }) {
+  const color =
+    apexClass === "at-apex" ? "text-accent bg-accent/10 border-accent/30" :
+    apexClass === "on-the-way-up" ? "text-red-400 bg-red-400/10 border-red-400/30" :
+    "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
+  const label =
+    apexClass === "at-apex" ? "@ apex" :
+    apexClass === "on-the-way-up" ? "early" : "late";
+  return (
+    <div className={`mt-1.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${color}`}>
+      <span>{label}</span>
+      {apexMs != null && <span className="tabular-nums font-normal opacity-70">{apexMs > 0 ? "+" : ""}{Math.round(apexMs)}ms</span>}
     </div>
   );
 }

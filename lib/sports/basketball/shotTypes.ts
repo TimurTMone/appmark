@@ -25,6 +25,12 @@ export type ShotTypeConfig = {
   requiresJump: boolean;
   minJumpAmplitude: number;                // normalized shoulder-Y delta (~0.03 = small hop)
 
+  // apex timing: release timing relative to jump apex in ms
+  //   0 = exactly at apex, negative = on the way up, positive = on the way down
+  //   Ideal window is release at or slightly AFTER apex (classic pros release
+  //   right as they start to drop slightly). Only applied when jump detected.
+  idealApexTiming?: [number, number];
+
   // scoring weights (must sum to 100 total)
   weights: {
     kneeFlex: number;
@@ -32,6 +38,7 @@ export type ShotTypeConfig = {
     releaseExtension: number;
     elbowFlare: number;
     releaseAngle: number;
+    apexTiming: number;
   };
 };
 
@@ -48,7 +55,7 @@ export const SHOT_TYPES: Record<ShotTypeId, ShotTypeConfig> = {
     maxElbowFlare: 0.08,
     requiresJump: false,
     minJumpAmplitude: 0,
-    weights: { kneeFlex: 15, setpoint: 25, releaseExtension: 25, elbowFlare: 20, releaseAngle: 15 },
+    weights: { kneeFlex: 15, setpoint: 25, releaseExtension: 25, elbowFlare: 20, releaseAngle: 15, apexTiming: 0 },
   },
   "jump-shot": {
     id: "jump-shot",
@@ -62,7 +69,8 @@ export const SHOT_TYPES: Record<ShotTypeId, ShotTypeConfig> = {
     maxElbowFlare: 0.09,
     requiresJump: true,
     minJumpAmplitude: 0.03,
-    weights: { kneeFlex: 20, setpoint: 20, releaseExtension: 20, elbowFlare: 15, releaseAngle: 25 },
+    idealApexTiming: [-50, 120], // at or just after apex
+    weights: { kneeFlex: 15, setpoint: 15, releaseExtension: 15, elbowFlare: 10, releaseAngle: 20, apexTiming: 25 },
   },
   "three-point": {
     id: "three-point",
@@ -76,7 +84,8 @@ export const SHOT_TYPES: Record<ShotTypeId, ShotTypeConfig> = {
     maxElbowFlare: 0.10,
     requiresJump: false,
     minJumpAmplitude: 0.02,
-    weights: { kneeFlex: 25, setpoint: 15, releaseExtension: 20, elbowFlare: 15, releaseAngle: 25 },
+    idealApexTiming: [-80, 180], // more forgiving on 3PT
+    weights: { kneeFlex: 20, setpoint: 15, releaseExtension: 15, elbowFlare: 10, releaseAngle: 25, apexTiming: 15 },
   },
 };
 

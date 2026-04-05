@@ -52,17 +52,23 @@ export async function POST(req: Request) {
   }
 }
 
-function buildPrompt(metrics: Record<string, number>, cues: { text: string }[] | undefined): string {
+function buildPrompt(metrics: Record<string, number | string | null>, cues: { text: string }[] | undefined): string {
   const m = metrics;
   const bullets = cues?.map((c) => `- ${c.text}`).join("\n") ?? "- (no faults detected)";
+  const apexLine =
+    m.apexToReleaseMs != null && m.apexTimingClass !== "no-jump"
+      ? `- Release timing: ${Math.round(Number(m.apexToReleaseMs))}ms from jump apex (${m.apexTimingClass}; ideal: release AT the apex, ~0±100ms)`
+      : `- Release timing: no jump detected`;
   return `You are a basketball shooting coach speaking to an athlete right after a shot attempt.
 You just measured these metrics from their shot:
 
-- Knee angle at load: ${Math.round(m.kneeAngleAtLoad)}° (ideal: 110–140°)
-- Elbow angle at set-point: ${Math.round(m.elbowAngleAtSetpoint)}° (ideal: 75–95°)
-- Elbow angle at release: ${Math.round(m.elbowAngleAtRelease)}° (ideal: near 180°)
-- Elbow flare at set-point: ${m.elbowFlareAtSetpoint.toFixed(3)} (ideal: < 0.08)
-- Form score: ${Math.round(m.formScore)}/100
+- Knee angle at load: ${Math.round(Number(m.kneeAngleAtLoad))}° (ideal varies per shot type)
+- Elbow angle at set-point: ${Math.round(Number(m.elbowAngleAtSetpoint))}° (ideal: 75–100°)
+- Elbow angle at release: ${Math.round(Number(m.elbowAngleAtRelease))}° (ideal: near 180°)
+- Elbow flare at set-point: ${Number(m.elbowFlareAtSetpoint).toFixed(3)} (ideal: < 0.08)
+- Release angle: ${m.releaseAngleDeg != null ? Math.round(Number(m.releaseAngleDeg)) + "°" : "unknown"} (ideal: 45–55°)
+${apexLine}
+- Form score: ${Math.round(Number(m.formScore))}/100
 
 Rule-based faults detected:
 ${bullets}

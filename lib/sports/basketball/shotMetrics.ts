@@ -35,15 +35,17 @@ export type ShotMetrics = {
   releaseAngleDeg: number | null;   // angle of wrist velocity vector at peak, from horizontal
   releaseVelocity: number;
   jumpAmplitude: number;            // max shoulder-Y drop from baseline (0 = no jump)
+  apexToReleaseMs: number | null;   // t(release) - t(jump apex); negative = released on way up
+  apexTimingClass: "on-the-way-up" | "at-apex" | "falling" | "no-jump";
   shotDurationMs: number;
   formScore: number;                // 0..100
-  // component sub-scores for transparency
   subScores: {
     kneeFlex: number;
     setpoint: number;
     releaseExtension: number;
     elbowFlare: number;
     releaseAngle: number;
+    apexTiming: number;
   };
 };
 
@@ -120,8 +122,23 @@ export function summarizeShot(frames: FrameMetrics[], config: ShotTypeConfig): S
 
   // jump amplitude: max (baseline shoulderY - current shoulderY)
   const baselineShoulderY = frames[0].shoulderY;
-  const minShoulderY = frames.reduce((m, f) => Math.min(m, f.shoulderY), baselineShoulderY);
+  let apexIdx = 0;
+  for (let i = 1; i < frames.length; i++) {
+    if (frames[i].shoulderY < frames[apexIdx].shoulderY) apexIdx = i;
+  }
+  const minShoulderY = frames[apexIdx].shoulderY;
   const jumpAmplitude = Math.max(0, baselineShoulderY - minShoulderY);
+
+  // apex timing: negative = release before apex (pushing), positive = after (falling)
+  const hasJump = jumpAmplitude >= 0.02;
+  const apexToReleaseMs = hasJump ? releaseFrame.t - frames[apexIdx].t : null;
+  const apexTimingClass: ShotMetrics["apexTimingClass"] = !hasJump
+    ? "no-jump"
+    : apexToReleaseMs! < -120
+      ? "on-the-way-up"
+      : apexToReleaseMs! > 180
+        ? "falling"
+        : "at-apex";
 
   const shotDurationMs = releaseFrame.t - setpointFrame.t;
 
@@ -132,6 +149,8 @@ export function summarizeShot(frames: FrameMetrics[], config: ShotTypeConfig): S
       elbowAngleAtRelease,
       elbowFlareAtSetpoint,
       releaseAngleDeg,
+      apexToReleaseMs,
+      hasJump,
     },
     config
   );
@@ -146,6 +165,8 @@ export function summarizeShot(frames: FrameMetrics[], config: ShotTypeConfig): S
     releaseAngleDeg,
     releaseVelocity,
     jumpAmplitude,
+    apexToReleaseMs,
+    apexTimingClass,
     shotDurationMs,
     formScore,
     subScores,
@@ -160,6 +181,8 @@ function scoreShot(
     elbowAngleAtRelease: number;
     elbowFlareAtSetpoint: number;
     releaseAngleDeg: number | null;
+    apexToReleaseMs: number | null;
+    hasJump: boolean;
   },
   c: ShotTypeConfig
 ): { formScore: number; subScores: ShotMetrics["subScores"] } {
@@ -170,12 +193,19 @@ function scoreShot(
   const releaseAngle =
     m.releaseAngleDeg == null ? 0.8 : scoreRange(m.releaseAngleDeg, c.idealReleaseAngle, 15);
 
+  // apex timing: neutral 1.0 if no jump; otherwise score against config window
+  let apexTiming = 1.0;
+  if (m.hasJump && m.apexToReleaseMs != null && c.idealApexTiming) {
+    apexTiming = scoreRange(m.apexToReleaseMs, c.idealApexTiming, 120);
+  }
+
   const raw =
     kneeFlex * c.weights.kneeFlex +
     setpoint * c.weights.setpoint +
     releaseExtension * c.weights.releaseExtension +
     elbowFlare * c.weights.elbowFlare +
-    releaseAngle * c.weights.releaseAngle;
+    releaseAngle * c.weights.releaseAngle +
+    apexTiming * c.weights.apexTiming;
 
   const formScore = Math.max(0, Math.min(100, Math.round(raw)));
   return {
@@ -186,6 +216,7 @@ function scoreShot(
       releaseExtension: Math.round(releaseExtension * 100),
       elbowFlare: Math.round(elbowFlare * 100),
       releaseAngle: Math.round(releaseAngle * 100),
+      apexTiming: Math.round(apexTiming * 100),
     },
   };
 }

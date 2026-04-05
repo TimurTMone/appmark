@@ -122,6 +122,40 @@ export function evaluateShot(m: ShotMetrics, c: ShotTypeConfig, jumpDetected: bo
     });
   }
 
+  // apex timing (jump shot / 3pt when they jumped)
+  if (m.apexToReleaseMs != null && c.idealApexTiming) {
+    const [lo, hi] = c.idealApexTiming;
+    if (m.apexTimingClass === "on-the-way-up") {
+      cues.push({
+        id: "release-at-top",
+        severity: "critical",
+        voice: "Release at the top",
+        text: `You released ${Math.abs(Math.round(m.apexToReleaseMs))}ms BEFORE your apex — shooting on the way up costs you consistency. Wait until you peak.`,
+      });
+    } else if (m.apexToReleaseMs < lo) {
+      cues.push({
+        id: "release-slightly-late",
+        severity: "warn",
+        voice: "Hang a touch longer",
+        text: `Released a hair early (${Math.round(m.apexToReleaseMs)}ms from apex). Let the jump bring you up.`,
+      });
+    } else if (m.apexTimingClass === "falling") {
+      cues.push({
+        id: "fading-release",
+        severity: "warn",
+        voice: "Release earlier",
+        text: `You released ${Math.round(m.apexToReleaseMs)}ms after apex — you're fading. Fine for a fadeaway, but for a straight jumper release at the peak.`,
+      });
+    } else if (m.apexToReleaseMs > hi) {
+      cues.push({
+        id: "release-slightly-early-late",
+        severity: "nit",
+        voice: "Near the top",
+        text: `Release ${Math.round(m.apexToReleaseMs)}ms after apex — close to ideal. Tighten the timing.`,
+      });
+    }
+  }
+
   const rank = { critical: 0, warn: 1, nit: 2 };
   return cues.sort((a, b) => rank[a.severity] - rank[b.severity]);
 }
