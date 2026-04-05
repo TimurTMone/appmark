@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import AnimatedHero from "@/components/landing/AnimatedHero";
 
 const SPORTS = [
   {
@@ -65,43 +66,52 @@ export default function Landing() {
       </nav>
 
       {/* hero */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-20 md:pt-20 md:pb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-3xl"
-        >
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs text-accent mb-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-            On-device pose AI · sub-200ms voice coaching
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.02] mb-6">
-            One AI coach.<br />
-            <span className="text-accent">Every sport that matters.</span>
-          </h1>
-          <p className="text-lg md:text-xl text-white/70 max-w-2xl mb-10 leading-relaxed">
-            Arc watches your form through your phone camera. On-device pose AI, research-calibrated
-            biomechanics, voice coaching that fires in under a second. Basketball, golf, tennis —
-            same engine, tuned per sport.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 mb-10">
-            <Link href="/train" className="inline-flex items-center justify-center rounded-full bg-accent text-black font-semibold px-6 py-4 text-base hover:bg-accent/90 active:scale-[0.98] transition-all">
-              Pick a sport →
-            </Link>
-            <a href="#sports" className="inline-flex items-center justify-center rounded-full bg-white/5 border border-white/15 text-white font-medium px-6 py-4 text-base hover:bg-white/10 transition-colors">
-              What it measures
-            </a>
-          </div>
-          <div className="grid grid-cols-4 gap-3 max-w-lg">
-            {STATS.map((s) => (
-              <div key={s.l} className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-center">
-                <div className="text-2xl font-bold tabular-nums">{s.v}</div>
-                <div className="text-[10px] uppercase tracking-wider text-white/50 mt-0.5">{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-20 md:pt-16 md:pb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs text-accent mb-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+              On-device pose AI · sub-200ms voice coaching
+            </div>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.02] mb-6">
+              One AI coach.<br />
+              <span className="text-accent">Every sport.</span>
+            </h1>
+            <p className="text-base md:text-lg text-white/70 max-w-xl mb-8 leading-relaxed">
+              Arc watches your form through your phone camera. Research-calibrated biomechanics,
+              voice coaching that fires in under a second. Basketball, golf, tennis — one engine,
+              tuned per sport.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <Link href="/train" className="inline-flex items-center justify-center rounded-full bg-accent text-black font-semibold px-6 py-4 text-base hover:bg-accent/90 active:scale-[0.98] transition-all">
+                Pick a sport →
+              </Link>
+              <a href="#sports" className="inline-flex items-center justify-center rounded-full bg-white/5 border border-white/15 text-white font-medium px-6 py-4 text-base hover:bg-white/10 transition-colors">
+                What it measures
+              </a>
+            </div>
+            <div className="grid grid-cols-4 gap-2 max-w-md">
+              {STATS.map((s) => (
+                <div key={s.l} className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-center">
+                  <div className="text-xl font-bold tabular-nums">{s.v}</div>
+                  <div className="text-[9px] uppercase tracking-wider text-white/50 mt-0.5">{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="relative"
+          >
+            <AnimatedHero />
+          </motion.div>
+        </div>
       </section>
 
       {/* sports grid */}
@@ -121,11 +131,17 @@ export default function Landing() {
             >
               <Link
                 href={s.href}
-                className={`block rounded-3xl border border-white/10 bg-gradient-to-br ${s.color} p-6 hover:border-white/25 hover:scale-[1.01] active:scale-[0.99] transition-all h-full`}
+                className={`block rounded-3xl border border-white/10 bg-gradient-to-br ${s.color} p-6 hover:border-white/25 hover:scale-[1.01] active:scale-[0.99] transition-all h-full group`}
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="text-5xl">{s.emoji}</div>
-                  <div className="text-white/30 text-2xl">→</div>
+                  <motion.div
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 3 + i * 0.4, repeat: Infinity, ease: "easeInOut" }}
+                    className="text-5xl"
+                  >
+                    {s.emoji}
+                  </motion.div>
+                  <div className="text-white/30 text-2xl group-hover:text-white/60 group-hover:translate-x-0.5 transition-all">→</div>
                 </div>
                 <div className="text-xl font-bold mb-1">{s.title}</div>
                 <div className="text-sm text-white/60 mb-4">{s.sub}</div>
