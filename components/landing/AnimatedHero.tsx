@@ -98,7 +98,7 @@ const JOINTS: (keyof Pose)[] = [
   "leftAnkle", "rightAnkle",
 ];
 
-const CYCLE_MS = 3200;
+const CYCLE_MS = 2800;
 
 export default function AnimatedHero() {
   const [idx, setIdx] = useState(0);
@@ -139,6 +139,14 @@ export default function AnimatedHero() {
           </AnimatePresence>
         </div>
 
+        {/* continuous scanning line */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute inset-x-4 top-4 h-[2px] rounded-full bg-gradient-to-r from-transparent via-accent/60 to-transparent pointer-events-none"
+          animate={{ y: ["0%", "calc(100% - 8px)", "0%"] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+        />
+
         {/* skeleton */}
         <div className="absolute inset-0 flex items-center justify-center">
           <AnimatePresence mode="wait">
@@ -172,7 +180,7 @@ export default function AnimatedHero() {
                     strokeLinecap="round"
                     initial={{ pathLength: 0, opacity: 0 }}
                     animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.05 + i * 0.02 }}
+                    transition={{ duration: 0.45, delay: 0.05 + i * 0.015 }}
                   />
                 );
               })}
@@ -186,7 +194,7 @@ export default function AnimatedHero() {
                     fill="#fff"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ duration: 0.35, delay: 0.15 + i * 0.02 }}
+                    transition={{ duration: 0.3, delay: 0.12 + i * 0.015 }}
                   />
                 );
               })}

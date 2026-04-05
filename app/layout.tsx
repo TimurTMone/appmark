@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: "Arc — AI form coach for basketball, golf, tennis",
   description:
     "On-device pose AI. Research-calibrated biomechanics. Voice coaching in under 200ms. Basketball (free throw, jump shot, three), golf (face-on swing), tennis (serve kinetic chain). One engine, tuned per sport.",
+  applicationName: "Arc",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Arc",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
