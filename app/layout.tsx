@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Shadow — AI Boxing Coach in Your Browser",
+  title: "Arc — AI form coach for basketball, golf, tennis",
   description:
-    "Shadow box with an AI in your corner. Jab, cross, hook, uppercut detected live from your webcam. Combo caller, mood ring, pushups, squats. No install.",
+    "On-device pose AI. Research-calibrated biomechanics. Voice coaching in under 200ms. Basketball (free throw, jump shot, three), golf (face-on swing), tennis (serve kinetic chain). One engine, tuned per sport.",
 };
 
 export const viewport: Viewport = {
