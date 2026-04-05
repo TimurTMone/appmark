@@ -115,9 +115,9 @@ export default function LastSessionPage() {
           <MetricCard label="Elbow @ setpoint" value={`${Math.round(top.metrics.elbowAngleAtSetpoint)}°`} ideal="75–95°" />
           <MetricCard label="Elbow @ release" value={`${Math.round(top.metrics.elbowAngleAtRelease)}°`} ideal="near 180°" />
           <MetricCard label="Elbow flare" value={top.metrics.elbowFlareAtSetpoint.toFixed(2)} ideal="< 0.08" />
-          <MetricCard label="Release velocity" value={top.metrics.releaseVelocity.toFixed(2)} ideal="higher = snappier" />
+          <MetricCard label="Release angle" value={top.metrics.releaseAngleDeg != null ? `${Math.round(top.metrics.releaseAngleDeg)}°` : "—"} ideal="45–55°" />
+          <MetricCard label="Jump" value={top.metrics.jumpAmplitude > 0 ? `${(top.metrics.jumpAmplitude * 100).toFixed(1)}` : "0"} ideal="normalized" />
           <MetricCard label="Shot duration" value={`${Math.round(top.metrics.shotDurationMs)}ms`} />
-          <MetricCard label="Shooting hand" value={top.metrics.side} />
         </div>
 
         {/* all shots table */}

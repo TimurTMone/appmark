@@ -8,13 +8,16 @@ import { drawSkeleton } from "@/components/Skeleton";
 import { makeShotDetector, type ShotPhase } from "@/lib/sports/basketball/shotDetector";
 import { evaluateShot, topVoiceCue, type Cue } from "@/lib/sports/basketball/shotRules";
 import type { ShotMetrics } from "@/lib/sports/basketball/shotMetrics";
+import type { ShotTypeConfig } from "@/lib/sports/basketball/shotTypes";
 import { speak } from "@/lib/voice";
 import { record as recordLatency, stats as latencyStats } from "@/lib/telemetry/latency";
 
-type Props = { shotType: string; shotTypeLabel: string };
-type ShotRow = { metrics: ShotMetrics; cue: Cue; latencyMs: number; n: number };
+type Props = { config: ShotTypeConfig };
+type ShotRow = { metrics: ShotMetrics; cue: Cue; latencyMs: number; n: number; jumpDetected: boolean };
 
-export default function ShotCapture({ shotType, shotTypeLabel }: Props) {
+export default function ShotCapture({ config }: Props) {
+  const shotType = config.id;
+  const shotTypeLabel = config.label;
   const [phase, setPhase] = useState<ShotPhase>("idle");
   const [shots, setShots] = useState<ShotRow[]>([]);
   const [banner, setBanner] = useState<Cue | null>(null);
@@ -26,31 +29,28 @@ export default function ShotCapture({ shotType, shotTypeLabel }: Props) {
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
   const shotCountRef = useRef(0);
 
-  const onShot = useCallback((metrics: ShotMetrics, detectedAt: number) => {
-    const cues = evaluateShot(metrics);
-    const top = topVoiceCue(cues)!;
+  const onShot = useCallback((metrics: ShotMetrics, detectedAt: number, jumpDetected: boolean) => {
+    const cues = evaluateShot(metrics, config, jumpDetected);
+    const top = topVoiceCue(cues);
     const speakStart = performance.now();
     if (voiceRef.current) speak(top.voice, 0);
-    // measure: time from shot-detected to when we called speak()
     const latency = speakStart - detectedAt;
     recordLatency("detect-to-audio", latency);
     setLat(latencyStats("detect-to-audio"));
 
     shotCountRef.current += 1;
-    const row: ShotRow = { metrics, cue: top, latencyMs: latency, n: shotCountRef.current };
+    const row: ShotRow = { metrics, cue: top, latencyMs: latency, n: shotCountRef.current, jumpDetected };
     setShots((prev) => [row, ...prev].slice(0, 10));
     setBanner(top);
     setTimeout(() => setBanner((b) => (b?.id === top.id ? null : b)), 2800);
-  }, []);
+  }, [config]);
 
-  const detectorRef = useRef(makeShotDetector());
-  // stable, won't change
+  const detectorRef = useRef(makeShotDetector(config));
   useEffect(() => {
-    // re-create with current onShot
-    detectorRef.current = makeShotDetector({
-      onShot: (e) => onShot(e.metrics, e.detectedAt),
+    detectorRef.current = makeShotDetector(config, {
+      onShot: (e) => onShot(e.metrics, e.detectedAt, e.jumpDetected),
     });
-  }, [onShot]);
+  }, [onShot, config]);
 
   const onFrame = useCallback((f: FrameData) => {
     const v = videoElRef.current, c = canvasElRef.current;
@@ -100,10 +100,8 @@ export default function ShotCapture({ shotType, shotTypeLabel }: Props) {
       {/* setup tip while idle & no shots */}
       {ready && phase === "idle" && shots.length === 0 && (
         <div className="absolute top-20 left-4 right-4 z-10 rounded-2xl bg-black/60 backdrop-blur border border-white/10 p-4 text-center">
-          <div className="text-sm font-semibold mb-1">Get set up</div>
-          <div className="text-xs text-white/70 leading-relaxed">
-            Stand <b className="text-white">sideways</b> to the camera, 6–8 ft away. Make sure your whole body is in frame. Take a shot — we'll call out what to fix.
-          </div>
+          <div className="text-sm font-semibold mb-1">{config.label} · get set up</div>
+          <div className="text-xs text-white/70 leading-relaxed">{config.setupTip}</div>
         </div>
       )}
 

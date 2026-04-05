@@ -1,15 +1,9 @@
 import { notFound } from "next/navigation";
 import ShotCapture from "@/components/sports/basketball/ShotCapture";
-
-const SHOT_TYPES: Record<string, string> = {
-  "free-throw": "Free Throw",
-  "jump-shot": "Jump Shot",
-  "three-point": "Three",
-};
+import { getShotConfig } from "@/lib/sports/basketball/shotTypes";
 
 export default function ShootPage({ params }: { params: { shotType: string } }) {
-  const label = SHOT_TYPES[params.shotType];
-  if (!label) notFound();
-  // For MVP only free-throw is live; the others are routed to 404 by the picker.
-  return <ShotCapture shotType={params.shotType} shotTypeLabel={label} />;
+  const config = getShotConfig(params.shotType);
+  if (!config) notFound();
+  return <ShotCapture config={config} />;
 }

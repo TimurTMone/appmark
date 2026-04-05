@@ -3,6 +3,7 @@
 // Works best with side-on camera (camera perpendicular to shooter).
 
 import { angleAt, L, type Landmarks } from "@/lib/pose";
+import type { ShotTypeConfig } from "./shotTypes";
 
 // MediaPipe indices for arm joints (beyond what's in lib/pose.ts)
 const LEFT_ELBOW = 13;
@@ -16,23 +17,34 @@ export type FrameMetrics = {
   t: number;                     // ms timestamp
   kneeAngle: number;             // avg knee angle (hip-knee-ankle)
   shootingElbowAngle: number;    // shoulder-elbow-wrist of shooting arm
+  shootingWristX: number;
   shootingWristY: number;        // normalized wrist Y (lower Y = higher on screen)
   shoulderY: number;             // avg shoulder Y
   hipY: number;                  // avg hip Y
-  elbowFlareX: number;           // elbow X offset from shoulder X (same side)
+  elbowFlareX: number;           // |elbowX - shoulderX| (same side, normalized)
   shootingSide: Side;
 };
 
 export type ShotMetrics = {
   side: Side;
-  kneeAngleAtLoad: number;       // min knee angle during the shot (deepest bend)
-  elbowAngleAtSetpoint: number;  // elbow angle when wrist is at its lowest (pre-release)
-  elbowAngleAtRelease: number;   // elbow angle when wrist peaks (release)
-  wristPeakNormY: number;        // 0..1; lower = higher release
-  elbowFlareAtSetpoint: number;  // |elbowX - shoulderX| at setpoint
-  releaseVelocity: number;       // wrist upward speed at release (units/sec in normalized coords)
-  shotDurationMs: number;        // load → release
-  formScore: number;             // 0..100 computed summary
+  kneeAngleAtLoad: number;          // min knee angle during the shot
+  elbowAngleAtSetpoint: number;     // at lowest-wrist frame pre-release
+  elbowAngleAtRelease: number;      // at peak-wrist frame
+  wristPeakNormY: number;
+  elbowFlareAtSetpoint: number;
+  releaseAngleDeg: number | null;   // angle of wrist velocity vector at peak, from horizontal
+  releaseVelocity: number;
+  jumpAmplitude: number;            // max shoulder-Y drop from baseline (0 = no jump)
+  shotDurationMs: number;
+  formScore: number;                // 0..100
+  // component sub-scores for transparency
+  subScores: {
+    kneeFlex: number;
+    setpoint: number;
+    releaseExtension: number;
+    elbowFlare: number;
+    releaseAngle: number;
+  };
 };
 
 // ---- live per-frame computation ----
@@ -55,6 +67,7 @@ export function computeFrame(lm: Landmarks, t: number, side: Side): FrameMetrics
     t,
     kneeAngle,
     shootingElbowAngle,
+    shootingWristX: wrist.x,
     shootingWristY: wrist.y,
     shoulderY,
     hipY,
@@ -63,22 +76,18 @@ export function computeFrame(lm: Landmarks, t: number, side: Side): FrameMetrics
   };
 }
 
-// Detect which hand is the shooting hand: whichever wrist is higher (lower Y)
-// for sustained period while the other is steady is the shooting hand.
-// For MVP we auto-pick per-frame based on which wrist is above the other.
 export function pickShootingSide(lm: Landmarks): Side {
   return lm[RIGHT_WRIST].y < lm[LEFT_WRIST].y ? "right" : "left";
 }
 
 // ---- post-shot aggregation ----
-export function summarizeShot(frames: FrameMetrics[]): ShotMetrics | null {
+export function summarizeShot(frames: FrameMetrics[], config: ShotTypeConfig): ShotMetrics | null {
   if (frames.length < 5) return null;
   const side = frames[Math.floor(frames.length / 2)].shootingSide;
 
-  // deepest knee bend
   const kneeAngleAtLoad = frames.reduce((m, f) => Math.min(m, f.kneeAngle), 180);
 
-  // lowest wrist Y (highest on screen) is release
+  // peak = lowest wrist Y (highest on screen)
   let peakIdx = 0;
   for (let i = 1; i < frames.length; i++) {
     if (frames[i].shootingWristY < frames[peakIdx].shootingWristY) peakIdx = i;
@@ -87,7 +96,7 @@ export function summarizeShot(frames: FrameMetrics[]): ShotMetrics | null {
   const wristPeakNormY = releaseFrame.shootingWristY;
   const elbowAngleAtRelease = releaseFrame.shootingElbowAngle;
 
-  // setpoint = lowest wrist position *before* release (highest Y before peakIdx)
+  // setpoint = highest wrist Y (lowest on screen) before peak
   let setIdx = 0;
   for (let i = 1; i < peakIdx; i++) {
     if (frames[i].shootingWristY > frames[setIdx].shootingWristY) setIdx = i;
@@ -96,19 +105,36 @@ export function summarizeShot(frames: FrameMetrics[]): ShotMetrics | null {
   const elbowAngleAtSetpoint = setpointFrame.shootingElbowAngle;
   const elbowFlareAtSetpoint = setpointFrame.elbowFlareX;
 
-  // release velocity: wrist Y delta between 2 frames before peak and peak
-  const pre = frames[Math.max(0, peakIdx - 2)];
-  const dt = Math.max(1, releaseFrame.t - pre.t);
-  const releaseVelocity = ((pre.shootingWristY - releaseFrame.shootingWristY) / (dt / 1000));
+  // release velocity (wrist speed in normalized units/sec at peak)
+  const preForVel = frames[Math.max(0, peakIdx - 2)];
+  const dtVel = Math.max(1, releaseFrame.t - preForVel.t);
+  const releaseVelocity = (preForVel.shootingWristY - releaseFrame.shootingWristY) / (dtVel / 1000);
+
+  // release angle: angle of wrist motion vector from (peak - 3 frames) → peak
+  const preForAngle = frames[Math.max(0, peakIdx - 3)];
+  const dx = releaseFrame.shootingWristX - preForAngle.shootingWristX;
+  const dy = preForAngle.shootingWristY - releaseFrame.shootingWristY; // invert: up = positive
+  // mirrored camera: horizontal forward component matters. Use absolute horizontal.
+  const releaseAngleDeg =
+    dx === 0 && dy === 0 ? null : (Math.atan2(dy, Math.abs(dx)) * 180) / Math.PI;
+
+  // jump amplitude: max (baseline shoulderY - current shoulderY)
+  const baselineShoulderY = frames[0].shoulderY;
+  const minShoulderY = frames.reduce((m, f) => Math.min(m, f.shoulderY), baselineShoulderY);
+  const jumpAmplitude = Math.max(0, baselineShoulderY - minShoulderY);
 
   const shotDurationMs = releaseFrame.t - setpointFrame.t;
 
-  const formScore = scoreShot({
-    kneeAngleAtLoad,
-    elbowAngleAtSetpoint,
-    elbowAngleAtRelease,
-    elbowFlareAtSetpoint,
-  });
+  const { formScore, subScores } = scoreShot(
+    {
+      kneeAngleAtLoad,
+      elbowAngleAtSetpoint,
+      elbowAngleAtRelease,
+      elbowFlareAtSetpoint,
+      releaseAngleDeg,
+    },
+    config
+  );
 
   return {
     side,
@@ -117,31 +143,65 @@ export function summarizeShot(frames: FrameMetrics[]): ShotMetrics | null {
     elbowAngleAtRelease,
     wristPeakNormY,
     elbowFlareAtSetpoint,
+    releaseAngleDeg,
     releaseVelocity,
+    jumpAmplitude,
     shotDurationMs,
     formScore,
+    subScores,
   };
 }
 
-// 0..100 score. Heuristic, research-backed thresholds.
-function scoreShot(m: {
-  kneeAngleAtLoad: number;
-  elbowAngleAtSetpoint: number;
-  elbowAngleAtRelease: number;
-  elbowFlareAtSetpoint: number;
-}): number {
-  let score = 100;
-  // Knee bend: ideal 110-140° (research shows meaningful flex is required)
-  if (m.kneeAngleAtLoad > 155) score -= 20;          // barely bending
-  else if (m.kneeAngleAtLoad > 145) score -= 10;
-  // Set-point elbow: ideal 75-95° (research: 75-90°)
-  if (m.elbowAngleAtSetpoint < 60 || m.elbowAngleAtSetpoint > 115) score -= 15;
-  else if (m.elbowAngleAtSetpoint < 70 || m.elbowAngleAtSetpoint > 100) score -= 7;
-  // Release extension: should approach 180°
-  if (m.elbowAngleAtRelease < 150) score -= 20;       // chicken wing
-  else if (m.elbowAngleAtRelease < 165) score -= 10;
-  // Elbow flare at setpoint: elbow should be under the ball, close to shoulder X
-  if (m.elbowFlareAtSetpoint > 0.12) score -= 15;     // flared out
-  else if (m.elbowFlareAtSetpoint > 0.08) score -= 7;
-  return Math.max(0, Math.min(100, Math.round(score)));
+// Score 0..100 using the config's ideal ranges and weights.
+function scoreShot(
+  m: {
+    kneeAngleAtLoad: number;
+    elbowAngleAtSetpoint: number;
+    elbowAngleAtRelease: number;
+    elbowFlareAtSetpoint: number;
+    releaseAngleDeg: number | null;
+  },
+  c: ShotTypeConfig
+): { formScore: number; subScores: ShotMetrics["subScores"] } {
+  const kneeFlex = scoreRange(m.kneeAngleAtLoad, c.idealKneeAtLoad, 25);
+  const setpoint = scoreRange(m.elbowAngleAtSetpoint, c.idealSetpointElbow, 20);
+  const releaseExtension = scoreAbove(m.elbowAngleAtRelease, c.minReleaseExtension, 20);
+  const elbowFlare = scoreBelow(m.elbowFlareAtSetpoint, c.maxElbowFlare, 0.08);
+  const releaseAngle =
+    m.releaseAngleDeg == null ? 0.8 : scoreRange(m.releaseAngleDeg, c.idealReleaseAngle, 15);
+
+  const raw =
+    kneeFlex * c.weights.kneeFlex +
+    setpoint * c.weights.setpoint +
+    releaseExtension * c.weights.releaseExtension +
+    elbowFlare * c.weights.elbowFlare +
+    releaseAngle * c.weights.releaseAngle;
+
+  const formScore = Math.max(0, Math.min(100, Math.round(raw)));
+  return {
+    formScore,
+    subScores: {
+      kneeFlex: Math.round(kneeFlex * 100),
+      setpoint: Math.round(setpoint * 100),
+      releaseExtension: Math.round(releaseExtension * 100),
+      elbowFlare: Math.round(elbowFlare * 100),
+      releaseAngle: Math.round(releaseAngle * 100),
+    },
+  };
+}
+
+// smooth 0..1 score: 1.0 inside ideal range, linearly decays over `tolerance` degrees
+function scoreRange(value: number, range: [number, number], tolerance: number): number {
+  const [lo, hi] = range;
+  if (value >= lo && value <= hi) return 1;
+  const d = value < lo ? lo - value : value - hi;
+  return Math.max(0, 1 - d / tolerance);
+}
+function scoreAbove(value: number, threshold: number, tolerance: number): number {
+  if (value >= threshold) return 1;
+  return Math.max(0, 1 - (threshold - value) / tolerance);
+}
+function scoreBelow(value: number, threshold: number, tolerance: number): number {
+  if (value <= threshold) return 1;
+  return Math.max(0, 1 - (value - threshold) / tolerance);
 }

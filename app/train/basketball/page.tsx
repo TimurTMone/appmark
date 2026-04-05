@@ -1,14 +1,10 @@
 import Link from "next/link";
+import { SHOT_TYPES } from "@/lib/sports/basketball/shotTypes";
 
 export const metadata = { title: "Arc · Basketball" };
 
-const SHOTS = [
-  { slug: "free-throw", title: "Free Throw", body: "Standardized distance. The cleanest test of your mechanics.", available: true, stats: "Standard · 15ft line" },
-  { slug: "jump-shot", title: "Jump Shot", body: "Mid-range jumper. Tuning soon.", available: false, stats: "Coming soon" },
-  { slug: "three-point", title: "Three", body: "Deeper release, lower arc. Tuning soon.", available: false, stats: "Coming soon" },
-];
-
 export default function BasketballPicker() {
+  const shots = Object.values(SHOT_TYPES);
   return (
     <main className="min-h-[100dvh] bg-black text-white">
       <nav className="border-b border-white/10">
@@ -24,22 +20,26 @@ export default function BasketballPicker() {
 
       <section className="max-w-4xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Choose your shot.</h1>
-        <p className="text-white/60 text-sm mb-8">We'll track your form on every rep.</p>
+        <p className="text-white/60 text-sm mb-8">We'll track your form on every rep, tuned to this shot type.</p>
 
         <div className="space-y-3">
-          {SHOTS.map((s) => (
+          {shots.map((s) => (
             <Link
-              key={s.slug}
-              href={s.available ? `/train/basketball/${s.slug}` : "#"}
-              className={`block rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all ${s.available ? "hover:bg-white/[0.06] hover:border-white/20 active:scale-[0.99]" : "opacity-40 cursor-not-allowed"}`}
+              key={s.id}
+              href={`/train/basketball/${s.id}`}
+              className="block rounded-2xl border border-white/10 bg-white/[0.03] p-5 hover:bg-white/[0.06] hover:border-white/20 active:scale-[0.99] transition-all"
             >
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <div className="text-lg font-bold">{s.title}</div>
-                  <div className="text-sm text-white/60 mb-1">{s.body}</div>
-                  <div className="text-[11px] uppercase tracking-wider text-white/40">{s.stats}</div>
+                  <div className="text-lg font-bold">{s.label}</div>
+                  <div className="text-sm text-white/60 mb-1.5">{s.tagline}</div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-wider text-white/40">
+                    <span>Arc {s.idealReleaseAngle[0]}–{s.idealReleaseAngle[1]}°</span>
+                    <span>Knee {s.idealKneeAtLoad[0]}–{s.idealKneeAtLoad[1]}°</span>
+                    {s.requiresJump && <span className="text-accent/80">Jump required</span>}
+                  </div>
                 </div>
-                <div className="text-white/30 text-2xl">{s.available ? "→" : "·"}</div>
+                <div className="text-white/30 text-2xl">→</div>
               </div>
             </Link>
           ))}
