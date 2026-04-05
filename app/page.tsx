@@ -32,6 +32,11 @@ export default function Landing() {
           <span className="text-white/40 text-xs hidden sm:inline">· AI boxing coach</span>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/train" className="hidden sm:inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+            Try Arc
+            <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">New</span>
+          </Link>
           <Link href="/clinic/pricing" className="hidden sm:inline text-sm text-white/60 hover:text-white transition-colors">
             For clinics
           </Link>
