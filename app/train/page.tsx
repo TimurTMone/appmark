@@ -3,8 +3,8 @@ import Link from "next/link";
 export const metadata = { title: "Arc — AI sports form coach" };
 
 const SPORTS = [
-  { href: "/train/basketball", emoji: "🏀", title: "Basketball", body: "Free throw · Jump shot · Three", available: true, only: "Free throw live · more soon" },
-  { href: "#", emoji: "⛳", title: "Golf", body: "Full swing: takeaway → impact → follow-through", available: false, only: "Coming in Phase 2" },
+  { href: "/train/basketball", emoji: "🏀", title: "Basketball", body: "Free throw · Jump shot · Three", available: true, only: "All 3 shot types live" },
+  { href: "/train/golf", emoji: "⛳", title: "Golf", body: "Face-on full swing analysis", available: true, only: "Face-on live · down-the-line soon" },
 ];
 
 export default function Train() {
