@@ -232,7 +232,10 @@ export default function Landing() {
 
       <footer className="relative z-10 max-w-6xl mx-auto px-6 pb-10 pt-10 border-t border-white/5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs text-white/50">
-          <div>Arc · Built with Next.js, MediaPipe, Web Speech API, Claude. All pose AI runs on-device.</div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span>Arc · Built with Next.js, MediaPipe, Claude.</span>
+            <Link href="/privacy" className="text-white/60 hover:text-white underline underline-offset-2">Privacy</Link>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-white/40">Contact the developer:</span>
             <a

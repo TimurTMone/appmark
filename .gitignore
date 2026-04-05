@@ -6,3 +6,14 @@ out
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor generated native projects
+ios/
+android/
+
+# Capacitor build outputs
+www/
+
+# Keystore files (NEVER commit)
+*.keystore
+*.jks

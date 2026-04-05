@@ -1,0 +1,20 @@
+<!--
+  Paste these keys into ios/App/App/Info.plist after running `npx cap add ios`.
+  Xcode → open ios/App/App/Info.plist → add these inside the top-level <dict>.
+-->
+
+<!-- Camera access for pose detection -->
+<key>NSCameraUsageDescription</key>
+<string>Arc uses your camera to track your body's movement and coach your form in real time. Video is processed on-device and never uploaded.</string>
+
+<!-- Microphone NOT required for MVP; uncomment if you add it later -->
+<!--
+<key>NSMicrophoneUsageDescription</key>
+<string>Arc listens to voice commands to control your session hands-free.</string>
+-->
+
+<!-- Photo library (only if you add recording/save features later) -->
+<!--
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>Arc saves training clips to your photo library when you tap Save.</string>
+-->
